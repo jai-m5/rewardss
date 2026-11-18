@@ -152,7 +152,7 @@
       const wallet = await getDoc(doc(db, "users", userId));
       setPoints(wallet.exists() ? wallet.data().points || 0 : 0);
       await renderTransactions();
-      document.querySelector("#wallet-status").textContent = "Firebase wallet connected";
+      document.querySelector("#wallet-status").textContent = "wallet connected";
     };
     const saveTask = async (earned, taskName, campaignId, campaignName) => {
       try {
