@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WorkNears — Read, Watch, Survey & Earn Rewards</title>
+  <meta name="description" content="Read posts, watch sponsored videos, answer surveys and complete useful tasks to collect points and redeem eligible rewards.">
+  <style>
+    :root{--ink:#17202a;--muted:#697586;--brand:#6d3df5;--pink:#ff5e8a;--bg:#f7f6ff;--line:#e7e4f2;--white:#fff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.5}
+    .wrap{width:min(1080px,92%);margin:auto}header{background:#fff;border-bottom:1px solid var(--line);padding:18px 0}
+    nav{display:flex;align-items:center;justify-content:space-between}.logo{font-weight:900;color:var(--brand);font-size:1.3rem}
+    nav a{color:var(--ink);text-decoration:none;margin-left:20px;font-size:.95rem}.btn{border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}
+    .primary{background:var(--brand);color:#fff}.ghost{background:#eeeaff;color:var(--brand)}.hero{padding:64px 0 42px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+    .eyebrow{color:var(--brand);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.78rem}.hero h1{font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.02;margin:12px 0 18px}.lead{font-size:1.1rem;color:var(--muted);max-width:620px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 12px 28px #2c185c12}.balance{background:linear-gradient(135deg,#6d3df5,#9b64ff);color:#fff;border:0}.balance small{opacity:.8}.balance strong{display:block;font-size:2.4rem;margin:6px 0 18px}.progress{height:9px;border-radius:10px;background:#ffffff40;overflow:hidden}.progress i{display:block;height:100%;width:67%;background:#ffde6a}.mini{display:flex;justify-content:space-between;margin-top:10px;font-size:.9rem}.section{padding:54px 0}.purple{background:#efedff}.center{text-align:center}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:24px 0 4px}.filter{border:1px solid #d5cff3;background:#fff;color:var(--brand);border-radius:99px;padding:8px 14px;cursor:pointer;font-weight:750}.filter.active{background:var(--brand);color:#fff}.task{position:relative}.tag{display:inline-block;background:#ffe8ef;color:#bc315c;border-radius:99px;padding:4px 9px;font-size:.75rem;font-weight:800}.task h3{margin:13px 0 6px}.points{color:var(--brand);font-weight:900}.task button{width:100%;margin-top:16px}.task.hidden{display:none}.how{counter-reset:item}.how .card{padding-left:58px;position:relative}.how .card:before{counter-increment:item;content:counter(item);position:absolute;left:20px;top:21px;width:27px;height:27px;background:var(--brand);color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:800}    .wallet{max-width:640px;margin:auto}.wallet input{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;font:inherit;margin:7px 0 14px}.rewards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}.reward{border:1px solid var(--line);border-radius:12px;padding:15px;background:#fff}.reward strong{display:block;font-size:1.1rem}.reward button{width:100%;margin-top:12px;padding:9px}.notice{font-size:.87rem;color:var(--muted);margin-top:16px}.toast{position:fixed;right:18px;bottom:18px;background:#18202a;color:#fff;padding:14px 18px;border-radius:10px;display:none}.toast.show{display:block}@media(max-width:760px){.hero{grid-template-columns:1fr;padding-top:42px}.grid{grid-template-columns:1fr}.rewards{grid-template-columns:1fr}nav a:not(.btn){display:none}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><nav><div class="logo">WorkNears</div><div><a href="#tasks">Tasks</a><a href="#how">Kaise kaam kare</a><a class="btn primary" href="#wallet">Join free</a></div></nav></div></header>
+  <main>
+    <section class="wrap hero">
+      <div><div class="eyebrow">Read • Watch • Survey • Earn</div><h1>Content dekho, tasks karo, rewards kamao.</h1><p class="lead">Short posts padho, sponsored videos dekho, surveys complete karo aur useful quizzes ka answer dekar points collect karo. Bina betting, bina investment aur bina fake earning promise.</p><div class="actions"><a class="btn primary" href="#tasks">Aaj ke earning tasks dekho</a><a class="btn ghost" href="#how">Kaise earn karein?</a></div></div>
+      <div class="card balance"><small id="profile-label">My wallet</small><strong><span id="points">0</span> points</strong><div class="progress"><i></i></div><div class="mini"><span>Next reward</span><span>500 points</span></div><p id="profile-status">Sign in to load your WorkNears wallet.</p></div>
+    </section>
+    <section id="tasks" class="section purple"><div class="wrap"><div class="center"><div class="eyebrow">Daily reward tasks</div><h2>Read, watch, survey — apna task choose karo</h2><p class="lead" style="margin:auto">Har sponsored task clearly labelled hai. Start karne se pehle points, duration aur rules dikhenge.</p><div class="filters"><button class="filter active" data-filter="all">All tasks</button><button class="filter" data-filter="read">Read</button><button class="filter" data-filter="watch">Watch</button><button class="filter" data-filter="survey">Survey</button></div></div><div class="grid">
+      <article class="card task" data-type="read" data-campaign-id="phone-budget" data-campaign-name="Budget Phone Comparison"><span class="tag">Sponsored story</span><h3>Budget phone choose karna</h3><p>90-second comparison padho aur 1 question answer karo.</p><span class="points">+40 points</span><button class="btn primary task-btn" data-points="40">Read & earn</button></article>
+      <article class="card task" data-type="read" data-campaign-id="online-safety" data-campaign-name="Online Safety Basics"><span class="tag">Learn & quiz</span><h3>Online safety basics</h3><p>4 cards padho, phishing se bachne ke 3 signs identify karo.</p><span class="points">+60 points</span><button class="btn primary task-btn" data-points="60">Read & earn</button></article>
+      <article class="card task" data-type="watch" data-campaign-id="app-demo" data-campaign-name="New App Launch"><span class="tag">Sponsored video</span><h3>New app ka 30-sec demo</h3><p>Video dekho aur ek honest feedback do. Purchase required nahi.</p><span class="points">+35 points</span><button class="btn primary task-btn" data-points="35">Watch & earn</button></article>
+      <article class="card task" data-type="survey" data-campaign-id="tiffin-survey" data-campaign-name="Local Tiffin Survey"><span class="tag">Survey</span><h3>Apne area ka tiffin survey</h3><p>Honest 3-question survey. Koi purchase required nahi.</p><span class="points">+25 points</span><button class="btn primary task-btn" data-points="25">Start survey</button></article>
+      <article class="card task" data-type="watch" data-campaign-id="breakfast-recipe" data-campaign-name="Healthy Breakfast Recipe"><span class="tag">Sponsored video</span><h3>Healthy breakfast idea</h3><p>60-second recipe video dekho aur preference share karo.</p><span class="points">+45 points</span><button class="btn primary task-btn" data-points="45">Watch & earn</button></article>
+      <article class="card task" data-type="survey" data-campaign-id="shopping-survey" data-campaign-name="Weekend Shopping Survey"><span class="tag">Survey</span><h3>Weekend shopping habits</h3><p>5 honest questions; personal payment details kabhi nahi.</p><span class="points">+30 points</span><button class="btn primary task-btn" data-points="30">Start survey</button></article>
+    </div></div></section>
+    <section id="how" class="section"><div class="wrap"><div class="center"><h2>Simple aur transparent</h2></div><div class="grid how"><div class="card"><h3>Task padho</h3><p>Sponsored content ko clearly identify karke useful information dekho.</p></div><div class="card"><h3>Answer do</h3><p>Attention check ya short quiz complete karo—bots aur fake clicks allowed nahi.</p></div><div class="card"><h3>Points redeem</h3><p>Minimum threshold par available voucher/reward options dekho.</p></div></div></div></section>
+    <section id="wallet" class="section purple"><div class="wrap wallet"><div class="card"><div id="profile-box" class="notice" style="display:none"><img id="profile-photo" alt="" style="width:48px;height:48px;border-radius:50%;vertical-align:middle;margin-right:10px"><strong id="profile-name"></strong><div id="profile-email"></div></div><h2>My wallet: <span id="wallet-points">0</span> points</h2><button id="auth-btn" class="btn primary" type="button">Continue with Google</button><button id="signout-btn" class="btn ghost" type="button" style="display:none;margin-left:8px">Sign out</button><p id="wallet-status">Google account se sign in karke wallet open karein.</p><div id="transactions" class="notice">Sign in ke baad transaction history dikhegi.</div><h3>Gift card redeem karo</h3><p>Amazon · Flipkart · Google Play · Yatra · Domino's vouchers available campaigns aur stock par depend karenge.</p><div class="rewards"><div class="reward"><strong>₹50 voucher</strong><span>500 points</span></div><div class="reward"><strong>₹100 voucher</strong><span>1,000 points</span></div><div class="reward"><strong>Popular brands</strong><span>Coming soon</span></div></div><form id="redemption-form"><label for="voucher-brand">Brand</label><select id="voucher-brand" required><option>Amazon</option><option>Flipkart</option><option>Google Play</option><option>Yatra</option><option>Domino's</option></select><label for="voucher-amount">Voucher amount</label><select id="voucher-amount" required><option value="50">₹50 (500 points)</option><option value="100">₹100 (1,000 points)</option></select><label for="voucher-email">Voucher kis email par bhejna hai?</label><input id="voucher-email" type="email" required placeholder="your@email.com"><button class="btn primary" type="submit">Request voucher</button><p class="notice">Request pe points deduct honge aur status <b>pending</b> rahega. Company/admin manually ya API se voucher email karega.</p></form><form id="signup"><label for="email">Reward updates ke liye email</label><input id="email" type="email" required placeholder="you@example.com"><button class="btn primary" type="submit">Join free</button><p class="notice">No spam. Points aur rewards campaign availability, verification aur published terms par depend karte hain.</p></form></div></div></section>
+  </main>
+  <footer class="wrap" style="padding:28px 0;color:var(--muted);font-size:.88rem">© 2026 WorkNears · Demo product. Relevant sponsored content dikhayein, forced clicks nahi. Advertiser campaigns, payout policy, privacy policy aur terms launch se pehle publish karein.</footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, getRedirectResult, onAuthStateChanged, signInWithRedirect, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, limit, orderBy, query, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-cAMPi_TQqPwA5UCn7cjdpGZwU2pDruI",
+      authDomain: "rewardspoint-ea3b6.firebaseapp.com",
+      projectId: "rewardspoint-ea3b6",
+      appId: "1:186122741275:web:8da8e80891ce64de417abe"
+    };
+    let points = 0;
+    let userId = null;
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    const toast = document.querySelector("#toast");
+    const show = (message) => { toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2800); };
+    const setPoints = (value) => { points = value; document.querySelector("#points").textContent = value; document.querySelector("#wallet-points").textContent = value; };
+    const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE_") && !firebaseConfig.projectId.startsWith("YOUR_");
+
+    const renderTransactions = async () => {
+      if (!db || !userId) return;
+      const history = await getDocs(query(collection(db, "users", userId, "transactions"), orderBy("createdAt", "desc"), limit(10)));
+      document.querySelector("#transactions").innerHTML = history.empty ? "Abhi koi transaction nahi." : [...history.docs].map((item) => { const data = item.data(); return `<div>${data.points >= 0 ? "+" : ""}${data.points} points · ${data.taskName || data.type}</div>`; }).join("");
+    };
+    const loadWallet = async () => {
+      const wallet = await getDoc(doc(db, "users", userId));
+      setPoints(wallet.exists() ? wallet.data().points || 0 : 0);
+      await renderTransactions();
+      document.querySelector("#wallet-status").textContent = "Firebase wallet connected";
+    };
+    const saveTask = async (earned, taskName, campaignId, campaignName) => {
+      if (!db || !userId) { show("Wallet abhi connect nahi hua."); return false; }
+      const walletRef = doc(db, "users", userId);
+      const transactionRef = doc(collection(db, "users", userId, "transactions"));
+      await runTransaction(db, async (transaction) => {
+        const wallet = await transaction.get(walletRef);
+        const nextPoints = (wallet.exists() ? wallet.data().points || 0 : 0) + earned;
+        transaction.set(walletRef, { points: nextPoints, updatedAt: serverTimestamp() }, { merge: true });
+        transaction.set(transactionRef, {
+          userId, taskName, campaignId, campaignName, points: earned, type: "earn",
+          status: "completed", createdAt: serverTimestamp()
+        });
+      });
+      await loadWallet();
+      return true;
+    };
+    const requestRedemption = async (event) => {
+      event.preventDefault();
+      if (!db || !userId) { show("Wallet abhi connect nahi hua."); return; }
+      const brand = document.querySelector("#voucher-brand").value;
+      const amount = Number(document.querySelector("#voucher-amount").value);
+      const email = document.querySelector("#voucher-email").value.trim();
+      const cost = amount * 10;
+      const walletRef = doc(db, "users", userId);
+      const redemptionRef = doc(collection(db, "redemptions"));
+      const historyRef = doc(collection(db, "users", userId, "transactions"));
+      try {
+        await runTransaction(db, async (transaction) => {
+          const wallet = await transaction.get(walletRef);
+          const currentPoints = wallet.exists() ? wallet.data().points || 0 : 0;
+          if (currentPoints < cost) throw new Error(`Aapko ${cost - currentPoints} points aur chahiye.`);
+          transaction.update(walletRef, { points: currentPoints - cost, updatedAt: serverTimestamp() });
+          transaction.set(redemptionRef, {
+            userId, displayName: currentUser?.displayName || "", gmail: currentUser?.email || email,
+            deliveryEmail: email, brand, amount, pointsCost: cost, status: "pending", createdAt: serverTimestamp()
+          });
+          transaction.set(historyRef, { points: -cost, taskName: `${brand} ₹${amount} voucher request`, type: "redemption", status: "pending", createdAt: serverTimestamp() });
+        });
+        await loadWallet();
+        event.target.reset();
+        show(`Request pending: ${brand} ₹${amount} voucher ${email} par bheja jayega.`);
+      } catch (error) {
+        show(error.message || "Redemption request save nahi ho saki.");
+      }
+    };
+    const startFirebase = async () => {
+      if (!isConfigured) { document.querySelector("#wallet-status").textContent = "Demo mode — Firebase config add karein."; return; }
+      const app = initializeApp(firebaseConfig); db = getFirestore(app);
+      auth = getAuth(app);
+      document.querySelector("#auth-btn").addEventListener("click", async () => {
+        try {
+          await signInWithRedirect(auth, new GoogleAuthProvider());
+        } catch (error) {
+          show("Google sign-in failed: " + (error.code || "unknown"));
+        }
+      });
+      getRedirectResult(auth).catch((error) => show("Google sign-in failed: " + (error.code || "unknown")));
+      document.querySelector("#signout-btn").addEventListener("click", async () => {
+        await signOut(auth);
+        show("Signed out.");
+      });
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          userId = user.uid;
+          await setDoc(doc(db, "users", userId), {
+            userId, displayName: user.displayName || "", gmail: user.email || "",
+            photoURL: user.photoURL || "", points: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+          }, { merge: true });
+          await loadWallet();
+          const name = user.displayName || "Google User";
+          document.querySelector("#profile-label").textContent = name;
+          document.querySelector("#profile-status").textContent = user.email || "Signed in";
+          document.querySelector("#profile-name").textContent = name;
+          document.querySelector("#profile-email").textContent = user.email || "";
+          document.querySelector("#profile-photo").src = user.photoURL || "";
+          document.querySelector("#profile-box").style.display = "block";
+          document.querySelector("#auth-btn").style.display = "none";
+          document.querySelector("#signout-btn").style.display = "inline-block";
+          if (user.email) document.querySelector("#voucher-email").value = user.email;
+        } else {
+          currentUser = null;
+          userId = null;
+          document.querySelector("#profile-label").textContent = "My wallet";
+          document.querySelector("#profile-status").textContent = "Sign in to load your WorkNears wallet.";
+          document.querySelector("#profile-box").style.display = "none";
+          document.querySelector("#auth-btn").style.display = "inline-block";
+          document.querySelector("#signout-btn").style.display = "none";
+          setPoints(0);
+        }
+      });
+    };
+    document.querySelectorAll(".task-btn").forEach((button) => button.addEventListener("click", async () => {
+      const earned = Number(button.dataset.points);
+      const taskCard = button.closest(".task");
+      const campaignId = taskCard.dataset.campaignId;
+      const campaignName = taskCard.dataset.campaignName;
+      if (await saveTask(earned, taskCard.querySelector("h3").textContent, campaignId, campaignName)) { button.textContent = "Completed ✓"; button.disabled = true; show(`+${earned} points wallet mein save hue.`); }
+    }));
+    document.querySelectorAll(".filter").forEach((filter) => filter.addEventListener("click", () => {
+      document.querySelectorAll(".filter").forEach((item) => item.classList.remove("active")); filter.classList.add("active");
+      const selected = filter.dataset.filter; document.querySelectorAll(".task").forEach((task) => task.classList.toggle("hidden", selected !== "all" && task.dataset.type !== selected));
+    }));
+    document.querySelector("#redemption-form").addEventListener("submit", requestRedemption);
+    document.querySelector("#signup").addEventListener("submit", (event) => { event.preventDefault(); show("Waitlist mein naam add hua (demo)."); event.target.reset(); });
+    startFirebase().catch(() => { document.querySelector("#wallet-status").textContent = "Firebase connect nahi hua. Config aur security rules check karein."; });
+  </script>
+</body>
+</html>
