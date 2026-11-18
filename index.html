@@ -57,16 +57,26 @@
       <div id="transactions" class="notice">Sign in ke baad history dikhegi.</div>
     </section>
     <section class="wallet-panel" data-wallet-panel="redeem">
-      <h3>Redeem voucher</h3>
+      <h3>Redeem rewards</h3>
       <p class="notice">Minimum ₹10 · Maximum ₹5,000 · 10 points = ₹1</p>
       <form id="redemption-form">
-        <label for="voucher-brand">Brand</label>
+        <label for="reward-method">Redemption method</label>
+        <select id="reward-method" required><option value="voucher">Gift voucher</option><option value="upi">UPI payment</option></select>
+        <div id="voucher-fields">
+        <label for="voucher-brand">Voucher brand</label>
         <select id="voucher-brand" required><option>Amazon</option><option>Flipkart</option><option>Google Play</option><option>Yatra</option><option>Domino's</option></select>
-        <label for="voucher-amount">Voucher amount (₹)</label>
+        </div>
+        <div id="upi-fields" style="display:none">
+        <label for="upi-id">UPI ID</label>
+        <input id="upi-id" type="text" inputmode="text" placeholder="name@bank">
+        </div>
+        <label for="voucher-amount">Amount (₹)</label>
         <input id="voucher-amount" type="number" min="10" max="5000" step="1" value="10" required>
         <label for="voucher-email">Email</label>
         <input id="voucher-email" type="email" required placeholder="your@email.com">
+        <div id="required-points" class="notice">Required points: 100</div>
         <button class="btn primary" type="submit">Redeem now</button>
+        <p class="notice">UPI or voucher delivery may take up to 7 days after verification.</p>
       </form>
     </section>
   </aside>
@@ -176,13 +186,19 @@
     const requestRedemption = async (event) => {
       event.preventDefault();
       if (!db || !userId) { show("Wallet abhi connect nahi hua."); return; }
-      const brand = document.querySelector("#voucher-brand").value;
+      const method = document.querySelector("#reward-method").value;
+      const brand = method === "voucher" ? document.querySelector("#voucher-brand").value : "UPI";
       const amount = Number(document.querySelector("#voucher-amount").value);
       if (!Number.isInteger(amount) || amount < 10 || amount > 5000) {
         show("Voucher amount ₹10 se ₹5,000 ke beech hone chahiye.");
         return;
       }
       const email = document.querySelector("#voucher-email").value.trim();
+      const upiId = document.querySelector("#upi-id").value.trim();
+      if (method === "upi" && !upiId) {
+        show("Please enter a valid UPI ID.");
+        return;
+      }
       const cost = amount * 10;
       const walletRef = doc(db, "users", userId);
       const redemptionRef = doc(collection(db, "redemptions"));
@@ -191,11 +207,14 @@
         await runTransaction(db, async (transaction) => {
           const wallet = await transaction.get(walletRef);
           const currentPoints = wallet.exists() ? wallet.data().points || 0 : 0;
-          if (currentPoints < cost) throw new Error(`Aapko ${cost - currentPoints} points aur chahiye.`);
+          if (currentPoints < cost) {
+            throw new Error(`Insufficient points. You need ${cost - currentPoints} more points. This request requires ${cost} points.`);
+          }
           transaction.update(walletRef, { points: currentPoints - cost, updatedAt: serverTimestamp() });
           transaction.set(redemptionRef, {
             userId, displayName: currentUser?.displayName || "", gmail: currentUser?.email || email,
-            deliveryEmail: email, brand, amount, pointsCost: cost, status: "pending", createdAt: serverTimestamp()
+            deliveryEmail: email, method, upiId: method === "upi" ? upiId : "",
+            brand, amount, pointsCost: cost, status: "pending", createdAt: serverTimestamp()
           });
           transaction.set(historyRef, {
             userId, points: -cost, taskName: `${brand} ₹${amount} voucher request`,
@@ -214,7 +233,8 @@
       const app = initializeApp(firebaseConfig); db = getFirestore(app);
       auth = getAuth(app);
       await setPersistence(auth, browserLocalPersistence);
-      document.querySelector("#auth-btn").addEventListener("click", async () => {
+      const googleLoginButton = document.querySelector("#auth-btn");
+      googleLoginButton.addEventListener("click", async () => {
         try {
           await signInWithPopup(auth, new GoogleAuthProvider());
         } catch (error) {
@@ -359,6 +379,17 @@
     document.querySelector("#profile-trigger").addEventListener("click", openMenu);
     document.querySelector("#close-menu").addEventListener("click", closeMenu);
     document.querySelector("#drawer-backdrop").addEventListener("click", closeMenu);
+    document.querySelector("#reward-method").addEventListener("change", (event) => {
+      const isUpi = event.target.value === "upi";
+      document.querySelector("#upi-fields").style.display = isUpi ? "block" : "none";
+      document.querySelector("#voucher-fields").style.display = isUpi ? "none" : "block";
+      document.querySelector("#upi-id").required = isUpi;
+      document.querySelector("#voucher-brand").required = !isUpi;
+    });
+    document.querySelector("#voucher-amount").addEventListener("input", (event) => {
+      const amount = Number(event.target.value) || 0;
+      document.querySelector("#required-points").textContent = `Required points: ${amount * 10}`;
+    });
     document.querySelectorAll(".side-tab").forEach((tab) => tab.addEventListener("click", () => {
       document.querySelectorAll(".side-tab").forEach((item) => item.classList.remove("active"));
       tab.classList.add("active");
