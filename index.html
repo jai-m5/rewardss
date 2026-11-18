@@ -75,7 +75,13 @@
     let currentUser = null;
     const toast = document.querySelector("#toast");
     const show = (message) => { toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2800); };
-    const setPoints = (value) => { points = value; document.querySelector("#points").textContent = value; document.querySelector("#wallet-points").textContent = value; };
+    const setPoints = (value) => {
+      points = value;
+      document.querySelector("#points").textContent = value;
+      document.querySelector("#wallet-points").textContent = value;
+      const progress = document.querySelector(".progress i");
+      if (progress) progress.style.width = Math.min(100, (value / 10) * 100) + "%";
+    };
     const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE_") && !firebaseConfig.projectId.startsWith("YOUR_");
 
     const renderTransactions = async () => {
@@ -101,27 +107,33 @@
       document.querySelector("#wallet-status").textContent = "Firebase wallet connected";
     };
     const saveTask = async (earned, taskName, campaignId, campaignName) => {
-      if (!db || !userId) { show("Wallet abhi connect nahi hua."); return false; }
-      const existing = await getDocs(query(
-        collection(db, "users", userId, "transactions"),
-        where("campaignId", "==", campaignId),
-        where("type", "==", "earn"),
-        limit(1)
-      ));
-      if (!existing.empty) { show("Ye campaign reward pehle complete ho chuka hai."); return false; }
-      const walletRef = doc(db, "users", userId);
-      const transactionRef = doc(collection(db, "users", userId, "transactions"));
-      await runTransaction(db, async (transaction) => {
-        const wallet = await transaction.get(walletRef);
-        const nextPoints = (wallet.exists() ? wallet.data().points || 0 : 0) + earned;
-        transaction.set(walletRef, { points: nextPoints, updatedAt: serverTimestamp() }, { merge: true });
-        transaction.set(transactionRef, {
-          userId, taskName, campaignId, campaignName, points: earned, type: "earn",
-          status: "completed", createdAt: serverTimestamp()
+      try {
+        if (!db || !userId) { show("Wallet abhi connect nahi hua."); return false; }
+        const existing = await getDocs(query(
+          collection(db, "users", userId, "transactions"),
+          where("campaignId", "==", campaignId),
+          where("type", "==", "earn"),
+          limit(1)
+        ));
+        if (!existing.empty) { show("Ye campaign reward pehle complete ho chuka hai."); return false; }
+        const walletRef = doc(db, "users", userId);
+        const transactionRef = doc(collection(db, "users", userId, "transactions"));
+        await runTransaction(db, async (transaction) => {
+          const wallet = await transaction.get(walletRef);
+          const nextPoints = (wallet.exists() ? wallet.data().points || 0 : 0) + earned;
+          transaction.set(walletRef, { points: nextPoints, updatedAt: serverTimestamp() }, { merge: true });
+          transaction.set(transactionRef, {
+            userId, taskName, campaignId, campaignName, points: earned, type: "earn",
+            status: "completed", createdAt: serverTimestamp()
+          });
         });
-      });
-      await loadWallet();
-      return true;
+        await loadWallet();
+        show(`Task complete: +${earned} points wallet mein add hue.`);
+        return true;
+      } catch (error) {
+        show("Firebase error: " + (error.code || error.message || "Task save nahi hua"));
+        return false;
+      }
     };
     const requestRedemption = async (event) => {
       event.preventDefault();
@@ -143,7 +155,10 @@
             userId, displayName: currentUser?.displayName || "", gmail: currentUser?.email || email,
             deliveryEmail: email, brand, amount, pointsCost: cost, status: "pending", createdAt: serverTimestamp()
           });
-          transaction.set(historyRef, { points: -cost, taskName: `${brand} ₹${amount} voucher request`, type: "redemption", status: "pending", createdAt: serverTimestamp() });
+          transaction.set(historyRef, {
+            userId, points: -cost, taskName: `${brand} ₹${amount} voucher request`,
+            type: "redemption", status: "pending", createdAt: serverTimestamp()
+          });
         });
         await loadWallet();
         event.target.reset();
@@ -235,7 +250,11 @@
       activeTask = null;
     };
     const openTaskModal = (button) => {
-      if (!currentUser) { show("Task complete karne se pehle Google se sign in karein."); document.querySelector("#wallet").scrollIntoView({ behavior: "smooth" }); return; }
+      if (!currentUser) {
+        show("Task complete karne se pehle Google se sign in karein.");
+        document.querySelector("#auth-btn").click();
+        return;
+      }
       const card = button.closest(".task");
       const type = card.dataset.type;
       activeTask = { button, card, earned: Number(button.dataset.points) };
@@ -244,7 +263,7 @@
       document.querySelector("#task-modal-description").textContent = card.querySelector("p").textContent;
       document.querySelector("#task-modal-content").innerHTML = taskContent[type].html;
       document.querySelector("#task-modal").classList.add("open");
-      let seconds = 10;
+      let seconds = 3;
       const submit = document.querySelector("#task-submit");
       submit.disabled = true;
       document.querySelector("#task-timer").textContent = `Please wait ${seconds} seconds before submitting.`;
