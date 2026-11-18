@@ -103,7 +103,7 @@
   </script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, getRedirectResult, onAuthStateChanged, signInWithRedirect, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, doc, getDoc, getDocs, limit, orderBy, query, where, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -235,15 +235,25 @@
       await setPersistence(auth, browserLocalPersistence);
       const googleLoginButton = document.querySelector("#auth-btn");
       googleLoginButton.addEventListener("click", async () => {
+        googleLoginButton.disabled = true;
+        googleLoginButton.textContent = "Opening Google sign-in...";
         try {
-          await signInWithPopup(auth, new GoogleAuthProvider());
+          await signInWithRedirect(auth, new GoogleAuthProvider());
         } catch (error) {
           show("Google sign-in failed: " + (error.code || error.message || "unknown"));
+        } finally {
+          if (!auth.currentUser) {
+            googleLoginButton.disabled = false;
+            googleLoginButton.textContent = "Continue with Google";
+          }
         }
       });
       document.querySelector("#signout-btn").addEventListener("click", async () => {
         await signOut(auth);
         show("Signed out.");
+      });
+      getRedirectResult(auth).catch((error) => {
+        show("Google sign-in failed: " + (error.code || error.message || "unknown"));
       });
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -396,7 +406,10 @@
       document.querySelectorAll(".wallet-panel").forEach((panel) => panel.classList.toggle("active", panel.dataset.walletPanel === tab.dataset.panel));
     }));
     document.querySelector("#redemption-form").addEventListener("submit", requestRedemption);
-    document.querySelector("#signup").addEventListener("submit", (event) => { event.preventDefault(); show("Waitlist mein naam add hua (demo)."); event.target.reset(); });
+    const signupForm = document.querySelector("#signup");
+    if (signupForm) {
+      signupForm.addEventListener("submit", (event) => { event.preventDefault(); show("Waitlist mein naam add hua (demo)."); event.target.reset(); });
+    }
     startFirebase().catch(() => { document.querySelector("#wallet-status").textContent = "Firebase connect nahi hua. Config aur security rules check karein."; });
   </script>
 </body>
