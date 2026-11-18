@@ -38,7 +38,7 @@
   <div id="toast" class="toast" role="status"></div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, getRedirectResult, onAuthStateChanged, signInWithRedirect, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, doc, getDoc, getDocs, limit, orderBy, query, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -117,14 +117,14 @@
       if (!isConfigured) { document.querySelector("#wallet-status").textContent = "Demo mode — Firebase config add karein."; return; }
       const app = initializeApp(firebaseConfig); db = getFirestore(app);
       auth = getAuth(app);
+      await setPersistence(auth, browserLocalPersistence);
       document.querySelector("#auth-btn").addEventListener("click", async () => {
         try {
-          await signInWithRedirect(auth, new GoogleAuthProvider());
+          await signInWithPopup(auth, new GoogleAuthProvider());
         } catch (error) {
-          show("Google sign-in failed: " + (error.code || "unknown"));
+          show("Google sign-in failed: " + (error.code || error.message || "unknown"));
         }
       });
-      getRedirectResult(auth).catch((error) => show("Google sign-in failed: " + (error.code || "unknown")));
       document.querySelector("#signout-btn").addEventListener("click", async () => {
         await signOut(auth);
         show("Signed out.");
@@ -133,11 +133,6 @@
         if (user) {
           currentUser = user;
           userId = user.uid;
-          await setDoc(doc(db, "users", userId), {
-            userId, displayName: user.displayName || "", gmail: user.email || "",
-            photoURL: user.photoURL || "", points: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-          }, { merge: true });
-          await loadWallet();
           const name = user.displayName || "Google User";
           document.querySelector("#profile-label").textContent = name;
           document.querySelector("#profile-status").textContent = user.email || "Signed in";
@@ -148,6 +143,25 @@
           document.querySelector("#auth-btn").style.display = "none";
           document.querySelector("#signout-btn").style.display = "inline-block";
           if (user.email) document.querySelector("#voucher-email").value = user.email;
+          try {
+            const walletRef = doc(db, "users", userId);
+            const existingWallet = await getDoc(walletRef);
+            if (!existingWallet.exists()) {
+              await setDoc(walletRef, {
+                userId, displayName: name, gmail: user.email || "",
+                photoURL: user.photoURL || "", points: 0,
+                createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+              });
+            } else {
+              await setDoc(walletRef, {
+                displayName: name, gmail: user.email || "",
+                photoURL: user.photoURL || "", updatedAt: serverTimestamp()
+              }, { merge: true });
+            }
+            await loadWallet();
+          } catch (error) {
+            document.querySelector("#wallet-status").textContent = "Profile Firebase sync failed: " + (error.code || error.message);
+          }
         } else {
           currentUser = null;
           userId = null;
