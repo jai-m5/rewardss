@@ -129,7 +129,7 @@
   </script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, getRedirectResult, onAuthStateChanged, signInWithRedirect, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, doc, getDoc, getDocs, limit, orderBy, query, where, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -178,7 +178,7 @@
       const wallet = await getDoc(doc(db, "users", userId));
       setPoints(wallet.exists() ? wallet.data().points || 0 : 0);
       await renderTransactions();
-      document.querySelector("#wallet-status").textContent = "Firebase wallet connected";
+      document.querySelector("#wallet-status").textContent = " wallet connected";
     };
     const saveTask = async (earned, taskName, campaignId, campaignName) => {
       try {
@@ -285,9 +285,15 @@
           provider.setCustomParameters({
             prompt: "select_account"
           });
-          await signInWithRedirect(auth, provider);
+          await signInWithPopup(auth, provider);
         } catch (error) {
-          show("Google sign-in failed: " + (error.code || error.message || "unknown"));
+          const code = error.code || "";
+          if (code === "auth/popup-blocked" || code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+            show("Popup blocked or closed. Opening Google sign-in page...");
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          show("Google sign-in failed: " + (code || error.message || "unknown"));
           googleLoginButton.disabled = false;
           googleLoginButton.textContent = "Continue with Google";
         }
