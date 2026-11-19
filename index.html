@@ -63,7 +63,6 @@
       <div><strong id="profile-name">Guest</strong><div id="profile-email" class="notice">Sign in required</div></div>
     </div>
     <button id="auth-btn" class="btn primary" type="button">Continue with Google</button>
-    <button id="create-account-btn" class="btn ghost" type="button" style="margin-top:8px;width:100%">Create account with Google</button>
     <button id="signout-btn" class="btn ghost" type="button" style="display:none">Sign out</button>
     <div class="side-tabs">
       <button class="side-tab active" data-panel="wallet" type="button">Wallet</button>
@@ -278,29 +277,22 @@
       auth = getAuth(app);
       await setPersistence(auth, browserLocalPersistence);
       const googleLoginButton = document.querySelector("#auth-btn");
-      const createAccountButton = document.querySelector("#create-account-btn");
-      const startGoogleAuth = async (isCreatingAccount) => {
+      const startGoogleAuth = async () => {
         googleLoginButton.disabled = true;
-        createAccountButton.disabled = true;
-        googleLoginButton.textContent = isCreatingAccount ? "Creating account..." : "Opening Google sign-in...";
+        googleLoginButton.textContent = "Opening Google sign-in...";
         try {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({
-            prompt: "select_account",
-            login_hint: ""
+            prompt: "select_account"
           });
-          sessionStorage.setItem("worknearsAuthIntent", isCreatingAccount ? "create" : "login");
           await signInWithRedirect(auth, provider);
         } catch (error) {
-          sessionStorage.removeItem("worknearsAuthIntent");
           show("Google sign-in failed: " + (error.code || error.message || "unknown"));
           googleLoginButton.disabled = false;
-          createAccountButton.disabled = false;
           googleLoginButton.textContent = "Continue with Google";
         }
       };
-      googleLoginButton.addEventListener("click", () => startGoogleAuth(false));
-      createAccountButton.addEventListener("click", () => startGoogleAuth(true));
+      googleLoginButton.addEventListener("click", startGoogleAuth);
       document.querySelector("#signout-btn").addEventListener("click", async () => {
         await signOut(auth);
         show("Signed out.");
@@ -308,12 +300,8 @@
       getRedirectResult(auth)
         .then((result) => {
           if (result?.user) {
-            const intent = sessionStorage.getItem("worknearsAuthIntent");
-            sessionStorage.removeItem("worknearsAuthIntent");
-            show(intent === "create" ? "Account created and signed in." : "Signed in successfully.");
             googleLoginButton.disabled = false;
             googleLoginButton.textContent = "Continue with Google";
-            createAccountButton.disabled = false;
           }
         })
         .catch((error) => {
@@ -337,7 +325,6 @@
           document.querySelector("#header-avatar").style.display = "block";
           document.querySelector("#header-label").textContent = name;
           document.querySelector("#auth-btn").style.display = "none";
-          document.querySelector("#create-account-btn").style.display = "none";
           document.querySelector("#signout-btn").style.display = "inline-block";
           if (user.email) document.querySelector("#voucher-email").value = user.email;
           try {
@@ -370,7 +357,6 @@
           document.querySelector("#header-avatar").style.display = "none";
           document.querySelector("#header-label").textContent = "Login / Wallet";
           document.querySelector("#auth-btn").style.display = "inline-block";
-          document.querySelector("#create-account-btn").style.display = "inline-block";
           document.querySelector("#signout-btn").style.display = "none";
           setPoints(0);
         }
