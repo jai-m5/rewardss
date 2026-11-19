@@ -278,25 +278,21 @@
       await setPersistence(auth, browserLocalPersistence);
       const googleLoginButton = document.querySelector("#auth-btn");
       googleLoginButton.addEventListener("click", async () => {
-        if (sessionStorage.getItem("googleSignInPending") === "1") {
-          show("Google sign-in is already opening. Please wait.");
-          return;
-        }
         googleLoginButton.disabled = true;
         googleLoginButton.textContent = "Opening Google sign-in...";
         try {
-          sessionStorage.setItem("googleSignInPending", "1");
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           await signInWithRedirect(auth, provider);
         } catch (error) {
-          sessionStorage.removeItem("googleSignInPending");
           show("Google sign-in failed: " + (error.code || error.message || "unknown"));
         } finally {
-          if (!auth.currentUser) {
-            googleLoginButton.disabled = false;
-            googleLoginButton.textContent = "Continue with Google";
-          }
+          window.setTimeout(() => {
+            if (!auth.currentUser) {
+              googleLoginButton.disabled = false;
+              googleLoginButton.textContent = "Continue with Google";
+            }
+          }, 1200);
         }
       });
       document.querySelector("#signout-btn").addEventListener("click", async () => {
@@ -304,10 +300,16 @@
         show("Signed out.");
       });
       getRedirectResult(auth)
-        .then(() => sessionStorage.removeItem("googleSignInPending"))
+        .then((result) => {
+          if (result?.user) {
+            googleLoginButton.disabled = false;
+            googleLoginButton.textContent = "Continue with Google";
+          }
+        })
         .catch((error) => {
-          sessionStorage.removeItem("googleSignInPending");
           show("Google sign-in failed: " + (error.code || error.message || "unknown"));
+          googleLoginButton.disabled = false;
+          googleLoginButton.textContent = "Continue with Google";
         });
       onAuthStateChanged(auth, async (user) => {
         if (user) {
