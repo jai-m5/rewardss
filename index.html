@@ -61,7 +61,7 @@
       <p class="notice">Minimum ₹10 · Maximum ₹5,000 · 10 points = ₹1</p>
       <form id="redemption-form">
         <label for="reward-method">Redemption method</label>
-        <select id="reward-method" required><option value="voucher">Gift voucher</option><option value="upi">UPI payment</option></select>
+        <select id="reward-method" required><option value="voucher">Gift voucher</option><option value="upi">UPI payment</option><option value="crypto">Crypto (Polygon / POL)</option></select>
         <div id="voucher-fields">
         <label for="voucher-brand">Voucher brand</label>
         <select id="voucher-brand" required><option>Amazon</option><option>Flipkart</option><option>Google Play</option><option>Yatra</option><option>Domino's</option></select>
@@ -70,13 +70,19 @@
         <label for="upi-id">UPI ID</label>
         <input id="upi-id" type="text" inputmode="text" placeholder="name@bank">
         </div>
+        <div id="crypto-fields" style="display:none">
+        <label for="crypto-address">Polygon wallet receive address</label>
+        <input id="crypto-address" type="text" placeholder="0x...">
+        <div class="notice">Token contract: <code>0x165796559BEF14fAcC8B519db0EA7151B3097eca</code></div>
+        <div id="crypto-bonus" class="notice">Crypto bonus: +50% · Example: 100 points = ₹10 base value + 50% bonus = ₹15 token value.</div>
+        </div>
         <label for="voucher-amount">Amount (₹)</label>
         <input id="voucher-amount" type="number" min="10" max="5000" step="1" value="10" required>
         <label for="voucher-email">Email</label>
         <input id="voucher-email" type="email" required placeholder="your@email.com">
         <div id="required-points" class="notice">Required points: 100</div>
         <button class="btn primary" type="submit">Redeem now</button>
-        <p class="notice">UPI or voucher delivery may take up to 7 days after verification.</p>
+        <p class="notice">UPI, gift voucher or crypto withdrawal requests may take up to 7 days or more after verification. Crypto withdrawal is subject to network availability and verification. Token price may fluctuate, and redemptions are subject to market and network risk. WorkNears is not responsible for incorrect wallet addresses or blockchain transfer losses.</p>
       </form>
     </section>
   </aside>
@@ -152,7 +158,7 @@
       const wallet = await getDoc(doc(db, "users", userId));
       setPoints(wallet.exists() ? wallet.data().points || 0 : 0);
       await renderTransactions();
-      document.querySelector("#wallet-status").textContent = "wallet connected";
+      document.querySelector("#wallet-status").textContent = " wallet connected";
     };
     const saveTask = async (earned, taskName, campaignId, campaignName) => {
       try {
@@ -187,7 +193,7 @@
       event.preventDefault();
       if (!db || !userId) { show("Wallet abhi connect nahi hua."); return; }
       const method = document.querySelector("#reward-method").value;
-      const brand = method === "voucher" ? document.querySelector("#voucher-brand").value : "UPI";
+      const brand = method === "voucher" ? document.querySelector("#voucher-brand").value : (method === "upi" ? "UPI" : "Polygon token");
       const amount = Number(document.querySelector("#voucher-amount").value);
       if (!Number.isInteger(amount) || amount < 10 || amount > 5000) {
         show("Voucher amount ₹10 se ₹5,000 ke beech hone chahiye.");
@@ -195,11 +201,20 @@
       }
       const email = document.querySelector("#voucher-email").value.trim();
       const upiId = document.querySelector("#upi-id").value.trim();
+      const cryptoAddress = document.querySelector("#crypto-address").value.trim();
       if (method === "upi" && !upiId) {
         show("Please enter a valid UPI ID.");
         return;
       }
+      if (method === "crypto" && !/^0x[a-fA-F0-9]{40}$/.test(cryptoAddress)) {
+        show("Please enter a valid Polygon wallet address starting with 0x.");
+        return;
+      }
       const cost = amount * 10;
+      const cryptoBonusPercent = method === "crypto" ? 50 : 0;
+      const cryptoBaseValue = method === "crypto" ? amount : 0;
+      const cryptoBonusValue = method === "crypto" ? amount * 0.5 : 0;
+      const cryptoEstimatedValue = method === "crypto" ? amount * 1.5 : 0;
       const walletRef = doc(db, "users", userId);
       const redemptionRef = doc(collection(db, "redemptions"));
       const historyRef = doc(collection(db, "users", userId, "transactions"));
@@ -214,6 +229,10 @@
           transaction.set(redemptionRef, {
             userId, displayName: currentUser?.displayName || "", gmail: currentUser?.email || email,
             deliveryEmail: email, method, upiId: method === "upi" ? upiId : "",
+            cryptoAddress: method === "crypto" ? cryptoAddress : "",
+            network: method === "crypto(HTC Hitcoin)" ? "Polygon(HTC)" : "",
+            tokenContract: method === "crypto" ? "0x165796559BEF14fAcC8B519db0EA7151B3097eca" : "",
+            cryptoBonusPercent, cryptoBaseValue, cryptoBonusValue, cryptoEstimatedValue,
             brand, amount, pointsCost: cost, status: "pending", createdAt: serverTimestamp()
           });
           transaction.set(historyRef, {
@@ -223,7 +242,10 @@
         });
         await loadWallet();
         event.target.reset();
-        show(`Request pending: ${brand} ₹${amount} voucher ${email} par bheja jayega.`);
+        const extra = method === "crypto"
+          ? ` Crypto estimated value: ₹${cryptoEstimatedValue.toFixed(2)} includes 50% bonus.`
+          : "";
+        show(`Request pending: ${brand} ₹${amount}. ${email} or connected account will be used for delivery.${extra}`);
       } catch (error) {
         show(error.message || "Redemption request save nahi ho saki.");
       }
@@ -235,11 +257,19 @@
       await setPersistence(auth, browserLocalPersistence);
       const googleLoginButton = document.querySelector("#auth-btn");
       googleLoginButton.addEventListener("click", async () => {
+        if (sessionStorage.getItem("googleSignInPending") === "1") {
+          show("Google sign-in is already opening. Please wait.");
+          return;
+        }
         googleLoginButton.disabled = true;
         googleLoginButton.textContent = "Opening Google sign-in...";
         try {
-          await signInWithRedirect(auth, new GoogleAuthProvider());
+          sessionStorage.setItem("googleSignInPending", "1");
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
+          await signInWithRedirect(auth, provider);
         } catch (error) {
+          sessionStorage.removeItem("googleSignInPending");
           show("Google sign-in failed: " + (error.code || error.message || "unknown"));
         } finally {
           if (!auth.currentUser) {
@@ -252,11 +282,15 @@
         await signOut(auth);
         show("Signed out.");
       });
-      getRedirectResult(auth).catch((error) => {
-        show("Google sign-in failed: " + (error.code || error.message || "unknown"));
-      });
+      getRedirectResult(auth)
+        .then(() => sessionStorage.removeItem("googleSignInPending"))
+        .catch((error) => {
+          sessionStorage.removeItem("googleSignInPending");
+          show("Google sign-in failed: " + (error.code || error.message || "unknown"));
+        });
       onAuthStateChanged(auth, async (user) => {
         if (user) {
+          sessionStorage.removeItem("googleSignInPending");
           currentUser = user;
           userId = user.uid;
           const name = user.displayName || "Google User";
@@ -390,15 +424,23 @@
     document.querySelector("#close-menu").addEventListener("click", closeMenu);
     document.querySelector("#drawer-backdrop").addEventListener("click", closeMenu);
     document.querySelector("#reward-method").addEventListener("change", (event) => {
-      const isUpi = event.target.value === "upi";
+      const method = event.target.value;
+      const isUpi = method === "upi";
+      const isCrypto = method === "crypto";
       document.querySelector("#upi-fields").style.display = isUpi ? "block" : "none";
-      document.querySelector("#voucher-fields").style.display = isUpi ? "none" : "block";
+      document.querySelector("#crypto-fields").style.display = isCrypto ? "block" : "none";
+      document.querySelector("#voucher-fields").style.display = method === "voucher" ? "block" : "none";
       document.querySelector("#upi-id").required = isUpi;
-      document.querySelector("#voucher-brand").required = !isUpi;
+      document.querySelector("#crypto-address").required = isCrypto;
+      document.querySelector("#voucher-brand").required = method === "voucher";
     });
     document.querySelector("#voucher-amount").addEventListener("input", (event) => {
       const amount = Number(event.target.value) || 0;
-      document.querySelector("#required-points").textContent = `Required points: ${amount * 10}`;
+      const isCrypto = document.querySelector("#reward-method").value === "crypto";
+      const requiredText = `Required points: ${amount * 10}`;
+      document.querySelector("#required-points").textContent = isCrypto
+        ? `${requiredText} · Estimated crypto value: ₹${(amount * 1.5).toFixed(2)} (50% bonus)`
+        : requiredText;
     });
     document.querySelectorAll(".side-tab").forEach((tab) => tab.addEventListener("click", () => {
       document.querySelectorAll(".side-tab").forEach((item) => item.classList.remove("active"));
