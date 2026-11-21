@@ -54,8 +54,25 @@
       <article class="card task extra-task hidden" data-type="read" data-campaign-id="email-tip" data-campaign-name="Email Safety Tip"><span class="tag">Learn & quiz</span><h3>Email safety tip</h3><p>Suspicious email identify karna seekhein.</p><span class="points">+2 points</span><button class="btn primary task-btn" data-points="2">Read & earn</button></article>
       <article class="card task extra-task hidden" data-type="survey" data-campaign-id="weekend-survey" data-campaign-name="Weekend Activity Survey"><span class="tag">Survey</span><h3>Weekend activity</h3><p>Your usual weekend plan share karein.</p><span class="points">+1 point</span><button class="btn primary task-btn" data-points="1">Start survey</button></article>
     </div><button id="more-tasks" class="btn ghost more-tasks" type="button">More tasks</button></div></div></section>
+    <div class="wrap" style="margin:28px auto">
+      <!-- AdSense display ad -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-7772969157451521"
+           data-ad-slot="4454612607"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
     <section id="how" class="section"><div class="wrap"><div class="center"><h2>Simple aur transparent</h2></div><div class="grid how"><div class="card"><h3>Task padho</h3><p>Sponsored content ko clearly identify karke useful information dekho.</p></div><div class="card"><h3>Answer do</h3><p>Attention check ya short quiz complete karo—bots aur fake clicks allowed nahi.</p></div><div class="card"><h3>Points redeem</h3><p>Minimum threshold par available voucher/reward options dekho.</p></div></div></div></section>
   </main>
+  <div class="wrap" style="margin:28px auto">
+    <!-- AdSense related ads -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="ca-pub-7772969157451521"
+         data-ad-slot="3876028101"></ins>
+  </div>
   <footer class="wrap" style="padding:28px 0;color:var(--muted);font-size:.88rem">© 2026 WorkNears. All advertisements are independently provided by third-party advertisers. We do not require or encourage any purchase, payment, investment, or clicking on ads. If an advertisement opens a new page or button, you may leave and return to WorkNears. You are responsible for your own decisions and actions. WorkNears is not responsible for any financial, personal, or other loss caused by advertisements or third-party offers. We do not accept investments or deposits.</footer>
   <div id="drawer-backdrop" class="drawer-backdrop"></div>
   <aside id="side-menu" class="side-menu" aria-label="User wallet menu">
@@ -128,6 +145,14 @@
         });
       });
     }
+    window.addEventListener("load", () => {
+      document.querySelectorAll("ins.adsbygoogle").forEach((ad) => {
+        if (!ad.dataset.adsenseInitialized) {
+          ad.dataset.adsenseInitialized = "true";
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      });
+    });
   </script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
